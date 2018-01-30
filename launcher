@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+
+set -e
+DEBUG=1
+
+usage () {
+  echo "Usage: launcher COMMAND"
+  echo "Commands:"
+  echo "    up:         Start/initialize containers in foreground"
+  echo "    start:      Start/initialize containers"
+  echo "    stop:       Stop running containers"
+  echo "    restart:    Restart containers"
+  echo "    down:       Stop and destroy running containers"
+  echo "    enter:      Open a shell to run commands inside the xmpp container"
+  echo "    logs:       View the Docker logs for containers"
+  echo
+  echo "Any other command will be passed through to docker-compose, including all arguments."
+  exit 1
+}
+
+command=$1
+
+if [ -z "$command" ]; then
+  usage
+fi
+
+cd "$(dirname "$0")"
+
+docker_path=`which docker.io || which docker`
+dockercompose_path=`which docker-compose`
+
+# escape sequences for output
+bold=$(tput bold)
+normal=$(tput sgr0)
+
+install_docker() {
+  echo "Docker is not installed, you will need to install Docker in order to run Thermostat"
+  echo "See https://docs.docker.com/installation/"
+  exit 1
+}
+
+install_dockercompose() {
+  echo "Docker Compose is not installed, you will need to install Docker Compose in order to run Thermostat"
+  echo "See https://docs.docker.com/compose/install/"
+  exit 1
+}
+
+check_prereqs() {
+    if [ -z ${docker_path} ]; then
+        install_docker
+    fi
+    if [ -z ${dockercompose_path} ]; then
+        install_dockercompose
+    fi
+}
+
+# check prerequisites
+check_prereqs
+
+docker_compose() {
+    (set -x; ${dockercompose_path} -p thermostat $*)
+}
+
+docker_compose_exec() {
+    set -x; exec ${dockercompose_path} -p thermostat $*
+}
+
+monitor_docker_build() {
+    image="$1"
+    base="$2"
+    shift 2
+
+    if [ -n "${DEBUG}" ]; then
+        ${docker_path} build -t ${image} $* ${base}
+    else
+        ${docker_path} build -t ${image} $* ${base} >/dev/null &
+        docker_pid=$!
+
+        trap "kill ${docker_pid} 2>/dev/null" EXIT
+
+        spin[0]="-"
+        spin[1]="\\"
+        spin[2]="|"
+        spin[3]="/"
+
+        echo -n "${image} ${spin[0]}"
+        while kill -0 ${docker_pid} 2>/dev/null
+        do
+            for i in "${spin[@]}"
+            do
+                echo -ne "\b$i"
+                sleep 0.1
+            done
+        done
+
+        trap - EXIT
+        wait ${docker_pid} && echo -e "\bOK"
+    fi
+}
+
+run_bootstrap() {
+    # build images
+    echo "This could take several minutes."
+    monitor_docker_build thermostat/daemon-dev daemon --build-arg NEWUID=${UID}
+    #monitor_docker_build thermostat/webui-dev webui --build-arg NEWUID=${UID}
+    echo
+}
+
+run_start() {
+    docker_compose up -d $*
+}
+
+run_up() {
+    docker_compose up $*
+}
+
+run_stop() {
+    docker_compose stop -t 10 $*
+}
+
+case "$command" in
+    up)
+        shift 1
+        run_bootstrap
+        run_up $*
+        exit 0
+        ;;
+
+    start)
+        shift 1
+        run_bootstrap
+        run_start $*
+        exit 0
+        ;;
+
+    stop)
+        shift 1
+        run_stop $*
+        exit 0
+        ;;
+
+    restart)
+        shift 1
+        run_stop $*
+        run_start $*
+        exit 0
+        ;;
+
+    down)
+        docker_compose down
+        exit 0
+        ;;
+
+    enter)
+        container=$2
+        shift 2
+        docker_compose_exec exec $container /bin/bash --login $*
+        ;;
+
+    *)
+        shift 1
+        docker_compose_exec ${command} $*
+        ;;
+
+esac
+
+usage

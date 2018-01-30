@@ -1,0 +1,23 @@
+version: '2'
+
+services:
+  #webui:
+  #  image: thermostat/webui-dev
+  #  volumes:
+  #    - ../webui:/opt/thermostat/webui
+  #    - .:/opt/thermostat/docker-dev
+
+  daemon:
+    image: thermostat/daemon-dev
+    volumes:
+      - ../daemon:/opt/thermostat/daemon
+      - .:/opt/thermostat/docker-dev
+    ports:
+      - 7475:7475
+
+  webserver:
+    image: nginx
+    volumes:
+      - ./webserver/nginx-default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - 8080:80
