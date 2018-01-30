@@ -6,7 +6,7 @@ RUN apt-get -qq update && apt-get -qq -y --no-install-recommends install \
 VOLUME ["/opt/thermostat/webui"]
 VOLUME ["/opt/thermostat/docker-dev"]
 
-EXPOSE 7475
+EXPOSE 4201
 
 #ARG NEWUID
 #ENV NEWUID=${NEWUID:-1000}
