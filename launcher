@@ -102,7 +102,7 @@ run_bootstrap() {
     # build images
     echo "This could take several minutes."
     monitor_docker_build thermostat/daemon-dev daemon --build-arg NEWUID=${UID}
-    #monitor_docker_build thermostat/webui-dev webui --build-arg NEWUID=${UID}
+    monitor_docker_build thermostat/webui-dev webui --build-arg NEWUID=${UID}
     echo
 }
 

@@ -1,11 +1,13 @@
 version: '2'
 
 services:
-  #webui:
-  #  image: thermostat/webui-dev
-  #  volumes:
-  #    - ../webui:/opt/thermostat/webui
-  #    - .:/opt/thermostat/docker-dev
+  webui:
+    image: thermostat/webui-dev
+    volumes:
+      - ../webui:/opt/thermostat/webui
+      - .:/opt/thermostat/docker-dev
+    ports:
+      - 4201:4201
 
   daemon:
     image: thermostat/daemon-dev
