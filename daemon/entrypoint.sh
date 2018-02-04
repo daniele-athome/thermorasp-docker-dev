@@ -9,4 +9,4 @@ sudo pip3 install -r requirements.txt -r requirements-dev.txt
 ./migrate generate
 ./migrate upgrade
 
-exec ./thermostatd --host 0.0.0.0 -c thermostat.conf
+exec ./thermostatd --host 0.0.0.0 -c thermostat.conf -d
