@@ -13,6 +13,8 @@ services:
     image: eclipse-mosquitto
     volumes:
       - ./broker/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    ports:
+      - 1883:1883
 
   daemon:
     image: thermostat/daemon-dev
