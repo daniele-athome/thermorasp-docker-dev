@@ -15,6 +15,7 @@ services:
       - ./broker/mosquitto.conf:/mosquitto/config/mosquitto.conf
     ports:
       - 1883:1883
+      - 9001:9001
 
   daemon:
     image: thermostat/daemon-dev
