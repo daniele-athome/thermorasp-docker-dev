@@ -1,4 +1,4 @@
-FROM node:9-stretch
+FROM node:10-stretch
 
 RUN apt-get -qq update && apt-get -qq -y --no-install-recommends install \
     git

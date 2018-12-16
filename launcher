@@ -118,6 +118,8 @@ run_stop() {
     docker_compose stop -t 10 $*
 }
 
+export TZ=$(cat /etc/timezone)
+
 case "$command" in
     up)
         shift 1

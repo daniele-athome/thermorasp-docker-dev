@@ -5,4 +5,4 @@ set -e
 cd $(dirname $0)/../../webui
 
 npm install
-exec node_modules/http-server/bin/http-server ./app -a 0.0.0.0 -p 4201 -c-1
+exec npm run ng serve -- --host=0.0.0.0 --port=4201 --disable-host-check
